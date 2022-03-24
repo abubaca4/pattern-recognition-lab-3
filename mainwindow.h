@@ -17,6 +17,12 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+private slots:
+    void on_action_Camera_Information_triggered();
+    void on_action_Open_Camera_triggered();
+    void on_action_Exit_triggered();
+    void on_actionOpen_Video_triggered();
+
 private:
     Ui::MainWindow *ui;
 };
