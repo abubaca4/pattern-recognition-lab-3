@@ -44,6 +44,17 @@ void CaptureThread::run() {
         if (tmp_frame.empty()) {
             break;
         }
+
+        if(video_saving_status == STARTING) {
+            startSavingVideo(tmp_frame);
+        }
+        if(video_saving_status == STARTED) {
+            video_writer->write(tmp_frame);
+        }
+        if(video_saving_status == STOPPING) {
+            stopSavingVideo();
+        }
+
         cvtColor(tmp_frame, tmp_frame, cv::COLOR_BGR2RGB);
 
         calcStats(tmp_frame);
@@ -58,6 +69,28 @@ void CaptureThread::run() {
     fps = 0;
 }
 
+void CaptureThread::startSavingVideo(cv::Mat &firstFrame)
+{
+    saved_video_name = Utilities::newSavedVideoName();
+    QString cover = Utilities::getSavedVideoPath(saved_video_name, "jpg");
+    cv::imwrite(cover.toStdString(), firstFrame);
+    video_writer = new cv::VideoWriter(
+                Utilities::getSavedVideoPath(saved_video_name, "mp4").toStdString(),
+                cv::VideoWriter::fourcc('H','2','6','4'),
+                fps? fps: 30,
+                cv::Size(frame_width,frame_height));
+    video_saving_status = STARTED;
+}
+
+void CaptureThread::stopSavingVideo()
+{
+    video_saving_status = STOPPED;
+    video_writer->release();
+    delete video_writer;
+    video_writer = nullptr;
+    emit videoSaved(saved_video_name);
+}
+
 void CaptureThread::calcStats(const cv::Mat &frame){
     QTime now = QTime::currentTime();
     fps = 1000.0 / prev.msecsTo(now);
@@ -66,7 +99,6 @@ void CaptureThread::calcStats(const cv::Mat &frame){
     QMutex data_write;
 
     std::array<double, 3> mean = {0, 0, 0};
-
     std::array<double, 3> smean = {0, 0, 0};
 
     cv::parallel_for_(cv::Range(0, frame_height), [&](const cv::Range& range){

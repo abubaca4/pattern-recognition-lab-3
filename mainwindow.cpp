@@ -20,6 +20,9 @@ MainWindow::MainWindow(QWidget *parent)
 #endif
 
     ui->statusbar->addPermanentWidget(&statusLabel);
+    list_model = new QStandardItemModel(this);
+    ui->listView->setModel(list_model);
+    populateSavedList();
 }
 
 MainWindow::~MainWindow()
@@ -62,14 +65,17 @@ void MainWindow::on_action_Open_Camera_triggered()
         capturer->setRunning(false);
         disconnect(capturer, &CaptureThread::frameCaptured, this, &MainWindow::updateFrame);
         disconnect(capturer, &CaptureThread::statsChanged, this, &MainWindow::updateStats);
+        disconnect(capturer, &CaptureThread::videoSaved, this, &MainWindow::appendSavedVideo);
         connect(capturer, &CaptureThread::finished, capturer, &CaptureThread::deleteLater);
     }
     capturer = new CaptureThread(camID, data_lock);
     connect(capturer, &CaptureThread::frameCaptured, this, &MainWindow::updateFrame);
     connect(capturer, &CaptureThread::statsChanged, this, &MainWindow::updateStats);
+    connect(capturer, &CaptureThread::videoSaved, this, &MainWindow::appendSavedVideo);
     capturer->start();
 #endif
     statusLabel.setText(QString("Capturing Camera %1").arg(camID));
+    ui->pushButton->setEnabled(true);
 }
 
 void MainWindow::on_action_Exit_triggered()
@@ -106,3 +112,46 @@ void MainWindow::updateStats(float fps, cv::Vec3f mean, cv::Vec3f std){
     statusLabel.setText(QString::asprintf("FPS: %.2f, mean: (%.2f, %.2f, %.2f), std: (%.2f, %.2f, %.2f)", fps, mean[0], mean[1], mean[2], std[0], std[1], std[2]));
 }
 #endif
+
+void MainWindow::appendSavedVideo(QString name)
+{
+    QString cover = Utilities::getSavedVideoPath(name, "jpg");
+    QStandardItem *item = new QStandardItem();
+    list_model->appendRow(item);
+    QModelIndex index = list_model->indexFromItem(item);
+    list_model->setData(index, QPixmap(cover).scaledToHeight(145), Qt::DecorationRole);
+    list_model->setData(index, name, Qt::DisplayRole);
+    ui->listView->scrollTo(index);
+}
+
+void MainWindow::on_pushButton_clicked()
+{
+    QString text = ui->pushButton->text();
+    if (text == "Record" && capturer != nullptr) {
+        capturer->setVideoSavingStatus(CaptureThread::STARTING);
+        ui->pushButton->setText("Stop Recording");
+        ui->checkBox->setEnabled(false);
+    } else if (text == "Stop Recording" && capturer != nullptr) {
+        capturer->setVideoSavingStatus(CaptureThread::STOPPING);
+        ui->pushButton->setText("Record");
+        ui->checkBox->setEnabled(true);
+    }
+}
+
+void MainWindow::populateSavedList()
+{
+    QDir dir(Utilities::getDataPath());
+    QStringList nameFilters;
+    nameFilters << "*.jpg";
+    QFileInfoList files = dir.entryInfoList(
+                nameFilters, QDir::NoDotAndDotDot | QDir::Files, QDir::Name);
+
+    foreach(QFileInfo cover, files) {
+        QString name = cover.baseName();
+        QStandardItem *item = new QStandardItem();
+        list_model->appendRow(item);
+        QModelIndex index = list_model->indexFromItem(item);
+        list_model->setData(index, QPixmap(cover.absoluteFilePath()).scaledToHeight(145), Qt::DecorationRole);
+        list_model->setData(index, name, Qt::DisplayRole);
+    }
+}

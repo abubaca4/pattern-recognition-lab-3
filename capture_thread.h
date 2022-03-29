@@ -31,6 +31,7 @@ public:
     };
 
     void setRunning(bool run) {running = run; };
+    void setVideoSavingStatus(VideoSavingStatus status) {video_saving_status = status; };
 
 protected:
     void run() override;
@@ -38,9 +39,12 @@ protected:
 signals:
     void frameCaptured(cv::Mat *data);
     void statsChanged(float fps, cv::Vec3f mean, cv::Vec3f std);
+    void videoSaved(QString name);
 
 private:
     void calcStats(const cv::Mat &frame);
+    void startSavingVideo(cv::Mat &firstFrame);
+    void stopSavingVideo();
 
     bool running;
     int cameraID;
