@@ -39,6 +39,7 @@ private slots:
 #ifdef GAZER_USE_QT_CAMERA
 #else
     void updateFrame(cv::Mat *mat);
+    void updateStats(float fps, cv::Vec3f mean, cv::Vec3f std);
 #endif
 private:
     Ui::MainWindow *ui;  

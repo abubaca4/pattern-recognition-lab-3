@@ -11,11 +11,13 @@ CONFIG += c++11
 SOURCES += \
     capture_thread.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    utilities.cpp
 
 HEADERS += \
     capture_thread.h \
-    mainwindow.h
+    mainwindow.h \
+    utilities.h
 
 FORMS += \
     mainwindow.ui

@@ -61,10 +61,12 @@ void MainWindow::on_action_Open_Camera_triggered()
         // if a thread is already running, stop it
         capturer->setRunning(false);
         disconnect(capturer, &CaptureThread::frameCaptured, this, &MainWindow::updateFrame);
+        disconnect(capturer, &CaptureThread::statsChanged, this, &MainWindow::updateStats);
         connect(capturer, &CaptureThread::finished, capturer, &CaptureThread::deleteLater);
     }
     capturer = new CaptureThread(camID, data_lock);
     connect(capturer, &CaptureThread::frameCaptured, this, &MainWindow::updateFrame);
+    connect(capturer, &CaptureThread::statsChanged, this, &MainWindow::updateStats);
     capturer->start();
 #endif
     statusLabel.setText(QString("Capturing Camera %1").arg(camID));
@@ -98,5 +100,9 @@ void MainWindow::updateFrame(cv::Mat *mat)
     imageScene->addPixmap(image);
     imageScene->update();
     ui->graphicsView->setSceneRect(image.rect());
+}
+
+void MainWindow::updateStats(float fps, cv::Vec3f mean, cv::Vec3f std){
+    statusLabel.setText(QString::asprintf("FPS: %.2f, mean: (%.2f, %.2f, %.2f), std: (%.2f, %.2f, %.2f)", fps, mean[0], mean[1], mean[2], std[0], std[1], std[2]));
 }
 #endif
