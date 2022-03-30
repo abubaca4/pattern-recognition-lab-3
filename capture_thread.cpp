@@ -57,14 +57,21 @@ void CaptureThread::run() {
             motionDetect(tmp_frame);
         }
 
-        if(video_saving_status == STARTING) {
+        switch (video_saving_status) {
+        case STARTING:
             startSavingVideo(tmp_frame);
-        }
-        if(video_saving_status == STARTED) {
+            break;
+
+        case STARTED:
             video_writer->write(tmp_frame);
-        }
-        if(video_saving_status == STOPPING) {
+            break;
+
+        case STOPPING:
             stopSavingVideo();
+            break;
+
+        default:
+            break;
         }
 
         cvtColor(tmp_frame, tmp_frame, cv::COLOR_BGR2RGB);
