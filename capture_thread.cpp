@@ -9,6 +9,8 @@ CaptureThread::CaptureThread(int camera, QMutex *lock):
     video_saving_status = STOPPED;
     saved_video_name = "";
     video_writer = nullptr;
+    motion_detecting_status = false;
+    segmentor = cv::createBackgroundSubtractorMOG2(500, 16, true);
 }
 
 CaptureThread::CaptureThread(QString videoPath, QMutex *lock):
@@ -20,6 +22,8 @@ CaptureThread::CaptureThread(QString videoPath, QMutex *lock):
     video_saving_status = STOPPED;
     saved_video_name = "";
     video_writer = nullptr;
+    motion_detecting_status = false;
+    segmentor = cv::createBackgroundSubtractorMOG2(500, 16, true);
 }
 
 CaptureThread::~CaptureThread() {
@@ -45,6 +49,10 @@ void CaptureThread::run() {
             break;
         }
 
+        if(motion_detecting_status) {
+            motionDetect(tmp_frame);
+        }
+
         if(video_saving_status == STARTING) {
             startSavingVideo(tmp_frame);
         }
@@ -67,6 +75,43 @@ void CaptureThread::run() {
     cap.release();
     running = false;
     fps = 0;
+}
+
+void CaptureThread::motionDetect(cv::Mat &frame)
+{
+    cv::Mat fgmask;
+    segmentor->apply(frame, fgmask);
+    if (fgmask.empty()) {
+        return;
+    }
+
+    cv::threshold(fgmask, fgmask, 25, 255, cv::THRESH_BINARY);
+
+    int noise_size = 9;
+    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(noise_size, noise_size));
+    cv::erode(fgmask, fgmask, kernel);
+    kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(noise_size, noise_size));
+    cv::dilate(fgmask, fgmask, kernel, cv::Point(-1, -1), 3);
+
+    std::vector<std::vector<cv::Point>> contours;
+    cv::findContours(fgmask, contours, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);
+
+    bool has_motion = contours.size() > 0;
+    if (!motion_detected && has_motion) {
+        motion_detected = true;
+        setVideoSavingStatus(STARTING);
+        qDebug() << "new motion detected, should send a notification.";
+    } else if (motion_detected && !has_motion) {
+        motion_detected = false;
+        setVideoSavingStatus(STOPPING);
+        qDebug() << "detected motion disappeared.";
+    }
+
+    cv::Scalar color = cv::Scalar(0, 0, 255);
+    for (size_t i = 0; i < contours.size(); i++) {
+        cv::Rect rect = cv::boundingRect(contours[i]);
+        cv::rectangle(frame, rect, color, 1);
+    }
 }
 
 void CaptureThread::startSavingVideo(cv::Mat &firstFrame)

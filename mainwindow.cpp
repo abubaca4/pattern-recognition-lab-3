@@ -76,6 +76,7 @@ void MainWindow::on_action_Open_Camera_triggered()
 #endif
     statusLabel.setText(QString("Capturing Camera %1").arg(camID));
     ui->pushButton->setEnabled(true);
+    ui->checkBox->setEnabled(true);
 }
 
 void MainWindow::on_action_Exit_triggered()
@@ -155,3 +156,18 @@ void MainWindow::populateSavedList()
         list_model->setData(index, name, Qt::DisplayRole);
     }
 }
+
+void MainWindow::on_checkBox_stateChanged(int arg1)
+{
+    if(capturer == nullptr) {
+        return;
+    }
+    if(arg1) {
+        capturer->setMotionDetectingStatus(true);
+        ui->pushButton->setEnabled(false);
+    } else {
+        capturer->setMotionDetectingStatus(false);
+        ui->pushButton->setEnabled(true);
+    }
+}
+

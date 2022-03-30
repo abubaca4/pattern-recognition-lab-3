@@ -10,7 +10,6 @@
 
 #include <array>
 #include <vector>
-#include <numeric>
 
 #include "utilities.h"
 
@@ -32,6 +31,11 @@ public:
 
     void setRunning(bool run) {running = run; };
     void setVideoSavingStatus(VideoSavingStatus status) {video_saving_status = status; };
+    void setMotionDetectingStatus(bool status) {
+        motion_detecting_status = status;
+        motion_detected = false;
+        if (video_saving_status != STOPPED) video_saving_status = STOPPING;
+    }
 
 protected:
     void run() override;
@@ -59,6 +63,11 @@ private:
     VideoSavingStatus video_saving_status;
     QString saved_video_name;
     cv::VideoWriter *video_writer;
+
+    void motionDetect(cv::Mat &frame);
+    bool motion_detecting_status;
+    bool motion_detected;
+    cv::Ptr<cv::BackgroundSubtractorMOG2> segmentor;
 };
 
 #endif // CAPTURE_THREAD_H
