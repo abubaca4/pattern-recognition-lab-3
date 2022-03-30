@@ -68,6 +68,7 @@ private:
     bool motion_detecting_status;
     bool motion_detected;
     cv::Ptr<cv::BackgroundSubtractorMOG2> segmentor;
+    cv::UMat kernel;
 };
 
 #endif // CAPTURE_THREAD_H

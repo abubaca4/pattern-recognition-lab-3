@@ -106,10 +106,11 @@ void MainWindow::on_actionOpen_Video_triggered()
     dialog.setWindowTitle("Open video file ...");
     dialog.setFileMode(QFileDialog::ExistingFile);
     dialog.setNameFilter(tr("Videos (*.mp4 *.avi)"));
+    static QRegularExpression name_chacker = QRegularExpression(".+\\.(mp4|avi)");
     QStringList fileNames;
     if (dialog.exec()) {
         fileNames = dialog.selectedFiles();
-        if (QRegularExpression(".+\\.(mp4|avi)").match(fileNames.at(0)).hasMatch()) {
+        if (name_chacker.match(fileNames.at(0)).hasMatch()) {
             capturer = new CaptureThread(fileNames.at(0), data_lock);
         } else {
             QMessageBox::information(this, "Information", "Open error: bad format of filename.");

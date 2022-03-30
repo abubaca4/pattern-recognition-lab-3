@@ -11,6 +11,8 @@ CaptureThread::CaptureThread(int camera, QMutex *lock):
     video_writer = nullptr;
     motion_detecting_status = false;
     segmentor = cv::createBackgroundSubtractorMOG2(500, 16, true);
+    int noise_size = 9;
+    cv::getStructuringElement(cv::MORPH_RECT, cv::Size(noise_size, noise_size)).copyTo(kernel);
 }
 
 CaptureThread::CaptureThread(QString videoPath, QMutex *lock):
@@ -24,6 +26,8 @@ CaptureThread::CaptureThread(QString videoPath, QMutex *lock):
     video_writer = nullptr;
     motion_detecting_status = false;
     segmentor = cv::createBackgroundSubtractorMOG2(500, 16, true);
+    int noise_size = 9;
+    cv::getStructuringElement(cv::MORPH_RECT, cv::Size(noise_size, noise_size)).copyTo(kernel);
 }
 
 CaptureThread::~CaptureThread() {
@@ -87,10 +91,7 @@ void CaptureThread::motionDetect(cv::UMat &frame)
 
     cv::threshold(fgmask, fgmask, 25, 255, cv::THRESH_BINARY);
 
-    int noise_size = 9;
-    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(noise_size, noise_size));
     cv::erode(fgmask, fgmask, kernel);
-    kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(noise_size, noise_size));
     cv::dilate(fgmask, fgmask, kernel, cv::Point(-1, -1), 3);
 
     std::vector<std::vector<cv::Point>> contours;
@@ -100,7 +101,7 @@ void CaptureThread::motionDetect(cv::UMat &frame)
     if (!motion_detected && has_motion) {
         motion_detected = true;
         setVideoSavingStatus(STARTING);
-        qDebug() << "new motion detected, should send a notification.";
+        qDebug() << "new motion detected.";
     } else if (motion_detected && !has_motion) {
         motion_detected = false;
         setVideoSavingStatus(STOPPING);
