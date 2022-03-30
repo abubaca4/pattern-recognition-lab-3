@@ -125,8 +125,8 @@ void MainWindow::on_actionOpen_Video_triggered()
     connect(capturer, &CaptureThread::statsChanged, this, &MainWindow::updateStats);
     connect(capturer, &CaptureThread::videoSaved, this, &MainWindow::appendSavedVideo);
     capturer->start();
-    ui->checkBox->setChecked(true);
 #endif
+    ui->pushButton->setEnabled(true);
     ui->checkBox->setEnabled(true);
 }
 
