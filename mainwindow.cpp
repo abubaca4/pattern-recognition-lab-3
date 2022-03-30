@@ -134,7 +134,7 @@ void MainWindow::on_actionOpen_Video_triggered()
 void MainWindow::updateFrame(cv::Mat *mat)
 {
     data_lock->lock();
-    currentFrame = *mat;
+    mat->copyTo(currentFrame);
     data_lock->unlock();
     QImage frame(
                 currentFrame.data,
