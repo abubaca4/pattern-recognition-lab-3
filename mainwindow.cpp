@@ -62,6 +62,7 @@ void MainWindow::on_action_Open_Camera_triggered()
 #else
     if(capturer != nullptr) {
         if (ui->checkBox->isChecked() || ui->pushButton->text() == "Stop Recording"){
+            QMessageBox::information(this, "Can't open camera now", "Please disable motion detection and stop video recoding");
             return;
         }
         // if a thread is already running, stop it
@@ -91,6 +92,7 @@ void MainWindow::on_actionOpen_Video_triggered()
 {
     if(capturer != nullptr) {
         if (ui->checkBox->isChecked() || ui->pushButton->text() == "Stop Recording"){
+            QMessageBox::information(this, "Can't open camera now", "Please disable motion detection and stop video recoding");
             return;
         }
         // if a thread is already running, stop it
