@@ -83,7 +83,7 @@ void CaptureThread::run() {
 
 void CaptureThread::motionDetect(cv::UMat &frame)
 {
-    cv::UMat fgmask;
+    cv::UMat fgmask(frame.size(), CV_8UC1, cv::ACCESS_WRITE, cv::USAGE_ALLOCATE_DEVICE_MEMORY);
     segmentor->apply(frame, fgmask);
     if (fgmask.empty()) {
         return;
