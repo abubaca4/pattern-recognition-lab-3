@@ -42,7 +42,7 @@ void CaptureThread::run() {
     frame_height = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
     frame_area = frame_width * frame_height;
 
-    cv::Mat tmp_frame;
+    cv::UMat tmp_frame;
     while(running) {
         cap >> tmp_frame;
         if (tmp_frame.empty()) {
@@ -65,7 +65,7 @@ void CaptureThread::run() {
 
         cvtColor(tmp_frame, tmp_frame, cv::COLOR_BGR2RGB);
 
-        calcStats(tmp_frame);
+        calcStats(tmp_frame.getMat(cv::ACCESS_READ));
 
         data_lock->lock();
         tmp_frame.copyTo(frame);
@@ -77,9 +77,9 @@ void CaptureThread::run() {
     fps = 0;
 }
 
-void CaptureThread::motionDetect(cv::Mat &frame)
+void CaptureThread::motionDetect(cv::UMat &frame)
 {
-    cv::Mat fgmask;
+    cv::UMat fgmask;
     segmentor->apply(frame, fgmask);
     if (fgmask.empty()) {
         return;
@@ -114,7 +114,7 @@ void CaptureThread::motionDetect(cv::Mat &frame)
     }
 }
 
-void CaptureThread::startSavingVideo(cv::Mat &firstFrame)
+void CaptureThread::startSavingVideo(cv::UMat &firstFrame)
 {
     saved_video_name = Utilities::newSavedVideoName();
     QString cover = Utilities::getSavedVideoPath(saved_video_name, "jpg");

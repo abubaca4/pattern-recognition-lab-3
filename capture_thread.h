@@ -47,7 +47,7 @@ signals:
 
 private:
     void calcStats(const cv::Mat &frame);
-    void startSavingVideo(cv::Mat &firstFrame);
+    void startSavingVideo(cv::UMat &firstFrame);
     void stopSavingVideo();
 
     bool running;
@@ -64,7 +64,7 @@ private:
     QString saved_video_name;
     cv::VideoWriter *video_writer;
 
-    void motionDetect(cv::Mat &frame);
+    void motionDetect(cv::UMat &frame);
     bool motion_detecting_status;
     bool motion_detected;
     cv::Ptr<cv::BackgroundSubtractorMOG2> segmentor;
