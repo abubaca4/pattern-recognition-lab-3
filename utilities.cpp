@@ -2,7 +2,7 @@
 
 QString Utilities::getDataPath()
 {
-    QString user_movie_path = QStandardPaths::standardLocations(QStandardPaths::MoviesLocation)[0];
+    QString user_movie_path = QStandardPaths::standardLocations(QStandardPaths::MoviesLocation).at(0);
     QDir movie_dir(user_movie_path);
     movie_dir.mkpath("Gazer");
     return movie_dir.absoluteFilePath("Gazer");
