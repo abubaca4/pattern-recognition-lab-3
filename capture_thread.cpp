@@ -35,7 +35,7 @@ void CaptureThread::run() {
     if (cameraID != -1) {
         cap = cv::VideoCapture(cameraID);
     } else {
-        cap = cv::VideoCapture(videoPath.toStdString());
+        cap = cv::VideoCapture(videoPath.toStdString(), cv::CAP_ANY, {cv::CAP_PROP_HW_ACCELERATION, cv::VIDEO_ACCELERATION_ANY, cv::CAP_PROP_HW_DEVICE, -1});
     }
 
     frame_width = cap.get(cv::CAP_PROP_FRAME_WIDTH);

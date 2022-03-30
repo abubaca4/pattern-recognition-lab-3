@@ -61,6 +61,9 @@ void MainWindow::on_action_Open_Camera_triggered()
     camera->start();
 #else
     if(capturer != nullptr) {
+        if (ui->checkBox->isChecked() || ui->pushButton->text() == "Stop Recording"){
+            return;
+        }
         // if a thread is already running, stop it
         capturer->setRunning(false);
         disconnect(capturer, &CaptureThread::frameCaptured, this, &MainWindow::updateFrame);
@@ -86,7 +89,42 @@ void MainWindow::on_action_Exit_triggered()
 
 void MainWindow::on_actionOpen_Video_triggered()
 {
+    if(capturer != nullptr) {
+        if (ui->checkBox->isChecked() || ui->pushButton->text() == "Stop Recording"){
+            return;
+        }
+        // if a thread is already running, stop it
+        capturer->setRunning(false);
+        disconnect(capturer, &CaptureThread::frameCaptured, this, &MainWindow::updateFrame);
+        disconnect(capturer, &CaptureThread::statsChanged, this, &MainWindow::updateStats);
+        disconnect(capturer, &CaptureThread::videoSaved, this, &MainWindow::appendSavedVideo);
+        connect(capturer, &CaptureThread::finished, capturer, &CaptureThread::deleteLater);
+    }
 
+#ifndef GAZER_USE_QT_CAMERA
+    QFileDialog dialog(this);
+    dialog.setWindowTitle("Open video file ...");
+    dialog.setFileMode(QFileDialog::ExistingFile);
+    dialog.setNameFilter(tr("Videos (*.mp4 *.avi)"));
+    QStringList fileNames;
+    if (dialog.exec()) {
+        fileNames = dialog.selectedFiles();
+        if (QRegularExpression(".+\\.(mp4|avi)").match(fileNames.at(0)).hasMatch()) {
+            capturer = new CaptureThread(fileNames.at(0), data_lock);
+        } else {
+            QMessageBox::information(this, "Information", "Open error: bad format of filename.");
+        }
+    }
+    if (fileNames.isEmpty()){
+        return;
+    }
+    connect(capturer, &CaptureThread::frameCaptured, this, &MainWindow::updateFrame);
+    connect(capturer, &CaptureThread::statsChanged, this, &MainWindow::updateStats);
+    connect(capturer, &CaptureThread::videoSaved, this, &MainWindow::appendSavedVideo);
+    capturer->start();
+    ui->checkBox->setChecked(true);
+#endif
+    ui->checkBox->setEnabled(true);
 }
 
 #ifndef GAZER_USE_QT_CAMERA

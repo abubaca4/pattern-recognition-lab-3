@@ -7,6 +7,7 @@
 #include <QMessageBox>
 #include <QLabel>
 #include <QStandardItem>
+#include <QFileDialog>
 
 #include "opencv2/opencv.hpp"
 
