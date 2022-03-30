@@ -121,7 +121,7 @@ void CaptureThread::startSavingVideo(cv::UMat &firstFrame)
     cv::imwrite(cover.toStdString(), firstFrame);
     video_writer = new cv::VideoWriter(
                 Utilities::getSavedVideoPath(saved_video_name, "mp4").toStdString(),
-                cv::VideoWriter::fourcc('H','2','6','4'),
+                cv::VideoWriter::fourcc('a','v','c','1'),
                 fps? fps: 30,
                 cv::Size(frame_width,frame_height));
     video_saving_status = STARTED;
