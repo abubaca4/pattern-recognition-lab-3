@@ -65,11 +65,11 @@ void CaptureThread::run() {
 
         cvtColor(tmp_frame, tmp_frame, cv::COLOR_BGR2RGB);
 
-        calcStats(tmp_frame.getMat(cv::ACCESS_READ));
-
         data_lock->lock();
         tmp_frame.copyTo(frame);
         data_lock->unlock();
+
+        calcStats(frame);
         emit frameCaptured(&frame);
     }
     cap.release();
