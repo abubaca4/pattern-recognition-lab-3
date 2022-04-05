@@ -115,11 +115,14 @@ void CaptureThread::motionDetect(cv::UMat &frame)
         qDebug() << "detected motion disappeared.";
     }
 
+    cv::Mat temp_frame(frame.size(), frame.type());
+    frame.copyTo(temp_frame);
     cv::Scalar color = cv::Scalar(0, 0, 255);
     for (size_t i = 0; i < contours.size(); i++) {
         cv::Rect rect = cv::boundingRect(contours[i]);
-        cv::rectangle(frame, rect, color, 1);
+        cv::rectangle(temp_frame, rect, color, 1);
     }
+    temp_frame.copyTo(frame);
 }
 
 void CaptureThread::startSavingVideo(cv::UMat &firstFrame)
